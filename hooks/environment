@@ -32,6 +32,12 @@ function initialize() {
   if [ -v BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_CREDENTIALS_FILE ]; then
     gcloud auth activate-service-account --key-file "${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_CREDENTIALS_FILE}"
   fi
+  
+  # Ensure the GCP project is set
+  if [ -z "${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID-}" ]; then
+    echo "GCP Project ID (BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID) is not set."
+    exit 1
+  fi
 
   initialized="1"
 }
@@ -53,7 +59,7 @@ function get_secret_value() {
   local secret_version
   local secret_value
 
-  secret_version=$(gcloud secrets versions list "${secret_name}" --format=json | jq -r '.[0].name')
+  secret_version=$(gcloud secrets versions list "${secret_name}" --project="${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" --format=json | jq -r '.[0].name')
   secret_version="${secret_version##*/}"
 
   local result=$?
@@ -62,6 +68,7 @@ function get_secret_value() {
   fi
 
   secret_value=$(gcloud secrets versions access "${secret_version}" \
+    --project="${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" \
     --secret="${secret_name}" \
     --format='get(payload.data)' | tr '_-' '/+' | base64 -d)
 
