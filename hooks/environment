@@ -44,10 +44,18 @@ function initialize() {
 
 function load_secret_into_env() {
   local export_name="$1"
-  local secret_name="$2"
-  local secret_value
+  local secret_info="$2"
+  local secret_name
+  local secret_version
 
-  secret_value="$(get_secret_value "${secret_name}")"
+  secret_name="${secret_info%:*}"
+  secret_version="${secret_info#*:}"
+  if [[ "$secret_name" == "$secret_version" ]]; then
+    secret_version=""
+  fi
+
+  local secret_value
+  secret_value="$(get_secret_value "${secret_name}" "${secret_version}")"
 
   echo "Exporting secret ${secret_name} from GCP Secret Manager into environment variable ${export_name}"
 
@@ -56,26 +64,18 @@ function load_secret_into_env() {
 
 function get_secret_value() {
   local secret_name="$1"
-  local secret_version
+  local secret_version="${2:-}"  # default to empty
   local secret_value
 
-  secret_version=$(gcloud secrets versions list "${secret_name}" --project="${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" --format=json | jq -r '.[0].name')
-  secret_version="${secret_version##*/}"
-
-  local result=$?
-  if [[ $result -ne 0 ]]; then
-    exit 1
+  if [[ -z "$secret_version" ]]; then
+    secret_version=$(gcloud secrets versions list "${secret_name}" --project="${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" --format=json | jq -r '.[0].name')
+    secret_version="${secret_version##*/}"
   fi
 
   secret_value=$(gcloud secrets versions access "${secret_version}" \
     --project="${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" \
     --secret="${secret_name}" \
     --format='get(payload.data)' | tr '_-' '/+' | base64 -d)
-
-  result=$?
-  if [[ $result -ne 0 ]]; then
-    exit 1
-  fi
 
   echo "${secret_value}"
 }
@@ -89,9 +89,11 @@ while IFS='=' read -r name _ ; do
   if [[ $name =~ ^(BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_ENV_) ]] ; then
     initialize
 
+    export export_name
     export_name="${name//BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_ENV_/}"
-    secret_name="$(strip_quotes "${!name}")"
+    export secret_info
+    secret_info="$(strip_quotes "${!name}")"
 
-    load_secret_into_env "${export_name}" "${secret_name}"
+    load_secret_into_env "${export_name}" "${secret_info}"
   fi
 done < <(env | sort)
