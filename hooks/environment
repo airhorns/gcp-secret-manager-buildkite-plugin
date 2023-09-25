@@ -34,7 +34,7 @@ function initialize() {
   fi
   
   # Ensure the GCP project is set
-  if [ -z "${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID-}" ]; then
+  if [ -z "${BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID}" ]; then
     echo "GCP Project ID (BUILDKITE_PLUGIN_GCP_SECRET_MANAGER_PROJECT_ID) is not set."
     exit 1
   fi

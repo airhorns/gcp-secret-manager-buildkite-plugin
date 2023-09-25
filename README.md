@@ -15,18 +15,17 @@ Other preinstalled requirements:
 
 Add the following to your `pipeline.yml`:
 
-ymlCopy code
-
-`steps:
-
-- command: 'echo \$SECRET_VAR'
-  plugins:
-  - robert-fahey/gcp-secret-manager#v1.1.1:
-    project_id: 'your-gcp-project-id' # NEW
-    credentials_file: /etc/gcloud-credentials.json
-    env:
-    SECRET_VAR: my-secret-name
-    OTHER_SECRET_VAR: my-other-secret-name`
+```yml
+steps:
+  - command: 'echo \$SECRET_VAR'
+    plugins:
+      - robert-fahey/gcp-secret-manager#v1.1.0:
+        project_id: "your-gcp-project-id" # NEW
+        credentials_file: /etc/gcloud-credentials.json
+        env:
+        SECRET_VAR: my-secret-name
+        OTHER_SECRET_VAR: my-other-secret-name`
+```
 
 ## Configuration
 
@@ -46,10 +45,10 @@ An object defining the export variables names and the secret names which will po
 
 To run the tests:
 
-shellCopy code
-
-`docker-compose run --rm shellcheck
-docker-compose run --rm tests`
+```shell
+docker-compose run --rm shellcheck
+docker-compose run --rm tests
+```
 
 ## Contributing
 
