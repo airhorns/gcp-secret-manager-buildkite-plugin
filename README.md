@@ -20,11 +20,11 @@ steps:
   - command: 'echo \$SECRET_VAR'
     plugins:
       - robert-fahey/gcp-secret-manager#1.2.0:
-        project_id: "your-gcp-project-id" # NEW
-        credentials_file: /etc/gcloud-credentials.json
-        env:
-        SECRET_VAR: my-secret-name:5 # NEW - the version number is optional
-        OTHER_SECRET_VAR: my-other-secret-name`
+          project_id: "your-gcp-project-id" # NEW
+          credentials_file: /etc/gcloud-credentials.json
+          env:
+            SECRET_VAR: my-secret-name:5 # NEW - the version number is optional
+            OTHER_SECRET_VAR: my-other-secret-name`
 ```
 
 ## Configuration
